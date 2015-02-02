@@ -171,7 +171,9 @@ def toc_for_course(request, course, active_chapter, active_section, field_data_c
             return None
 
         # Check to see if the course is gated on required content (such as an Entrance Exam)
-        required_content = _get_required_content(course, request.user)
+        required_content = []
+        if settings.FEATURES.get('MILESTONES_APP', False):
+            required_content = get_required_content(course, request.user)
 
         chapters = list()
         for chapter in course_module.get_display_items():
