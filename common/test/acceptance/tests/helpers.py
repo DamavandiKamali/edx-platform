@@ -10,6 +10,7 @@ from datetime import datetime
 from path import path
 from bok_choy.javascript import js_defined
 from bok_choy.web_app_test import WebAppTest
+from bok_choy.promise import EmptyPromise
 from opaque_keys.edx.locator import CourseLocator
 from pymongo import MongoClient
 from xmodule.partitions.partitions import UserPartition
@@ -214,6 +215,22 @@ def select_option_by_value(browser_query, value):
     """
     select = Select(browser_query.first.results[0])
     select.select_by_value(value)
+
+    def options_selected():
+        """
+        Returns True if all options in select element where value attribute
+        matches `value`. if any option is not selected then returns False
+        and select it.
+        """
+        all_options_selected = True
+        for opt in select.options:
+            if opt.get_attribute('value') == value and not opt.is_selected():
+                all_options_selected = False
+                opt.click()
+        return all_options_selected
+
+    # Make sure specified option is actually selected
+    EmptyPromise(options_selected, "Option is selected").fulfill()
 
 
 def is_option_value_selected(browser_query, value):
