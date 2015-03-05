@@ -45,6 +45,7 @@ from lms.djangoapps.lms_xblock.mixin import LmsBlockMixin
 from cms.lib.xblock.authoring_mixin import AuthoringMixin
 import dealer.git
 from xmodule.modulestore.edit_info import EditInfoMixin
+from xmodule.mixin import LicenseMixin
 
 ############################ FEATURE CONFIGURATION #############################
 STUDIO_NAME = "Studio"
@@ -300,6 +301,7 @@ XBLOCK_MIXINS = (
     XModuleMixin,
     EditInfoMixin,
     AuthoringMixin,
+    LicenseMixin,
 )
 
 # Allow any XBlock in Studio
