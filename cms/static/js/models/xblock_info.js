@@ -133,15 +133,16 @@ function(Backbone, _, str, ModuleUtils) {
              */
             'has_content_group_components': null,
             /**
-             * actions defines the state of delete, drag and add functionality for a xblock.
+             * actions defines the state of delete, drag and child add functionality for a xblock.
+             * currently, each xblock has default value of 'True' for keys: deletable, draggable and childAddable.
              */
             'actions': null,
             /**
-             * visible to UI.
+             * Header visible to UI.
              */
-            'is_visible': null,
+            'is_header_visible': null,
             /**
-             * Explanatory message for xblock that need to show.
+             * Optional explanatory message about the xblock.
              */
             'explanatory_message': null
 
@@ -189,19 +190,19 @@ function(Backbone, _, str, ModuleUtils) {
             return this.isActionRequired('draggable');
         },
 
-        isAddable: function(){
-            return this.isActionRequired('addable');
+        isChildAddable: function(){
+            return this.isActionRequired('childAddable');
         },
 
-        isVisible: function(){
-            if(this.get('is_visible')!= null) {
-              return this.get('is_visible');
+        isHeaderVisible: function(){
+            if(this.get('is_header_visible')!= null) {
+              return this.get('is_header_visible');
             }
             return true;
         },
 
         /**
-         * Return true if action is required e.g. delete, drag, add new etc.
+         * Return true if action is required e.g. delete, drag, add new child etc or if given key is not present.
          * @return {boolean}
         */
         isActionRequired: function(actionName) {

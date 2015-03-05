@@ -14,7 +14,6 @@ from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase, TEST_DATA_MOCK_MODULESTORE
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
 from util.milestones_helpers import generate_milestone_namespace, NAMESPACE_CHOICES
-from django.core.urlresolvers import reverse
 from student.models import CourseEnrollment
 from mock import patch
 import mock
@@ -138,6 +137,80 @@ class EntranceExamTestCases(ModuleStoreTestCase):
         self.client.login(username=self.request.user.username, password="test")
         CourseEnrollment.enroll(self.request.user, self.course.id)
 
+        self.expected_locked_toc = (
+            [
+                {
+                    'active': True,
+                    'sections': [
+                        {
+                            'url_name': u'Exam_Sequential_-_Subsection_1',
+                            'display_name': u'Exam Sequential - Subsection 1',
+                            'graded': True,
+                            'format': '',
+                            'due': None,
+                            'active': True
+                        }
+                    ],
+                    'url_name': u'Entrance_Exam_Section_-_Chapter_1',
+                    'display_name': u'Entrance Exam Section - Chapter 1'
+                }
+            ]
+        )
+        self.expected_unlocked_toc = (
+            [
+                {
+                    'active': False,
+                    'sections': [
+                        {
+                            'url_name': u'Welcome',
+                            'display_name': u'Welcome',
+                            'graded': False,
+                            'format': '',
+                            'due': None,
+                            'active': False
+                        },
+                        {
+                            'url_name': u'Lesson_1',
+                            'display_name': u'Lesson 1',
+                            'graded': False,
+                            'format': '',
+                            'due': None,
+                            'active': False
+                        }
+                    ],
+                    'url_name': u'Overview',
+                    'display_name': u'Overview'
+                },
+                {
+                    'active': False,
+                    'sections': [],
+                    'url_name': u'Week_1',
+                    'display_name': u'Week 1'
+                },
+                {
+                    'active': False,
+                    'sections': [],
+                    'url_name': u'Instructor',
+                    'display_name': u'Instructor'
+                },
+                {
+                    'active': True,
+                    'sections': [
+                        {
+                            'url_name': u'Exam_Sequential_-_Subsection_1',
+                            'display_name': u'Exam Sequential - Subsection 1',
+                            'graded': True,
+                            'format': '',
+                            'due': None,
+                            'active': True
+                        }
+                    ],
+                    'url_name': u'Entrance_Exam_Section_-_Chapter_1',
+                    'display_name': u'Entrance Exam Section - Chapter 1'
+                }
+            ]
+        )
+
     @mock.patch('xmodule.x_module.XModuleMixin.has_dynamic_children', mock.Mock(return_value='True'))
     def test_view_redirect_if_entrance_exam_required(self):
         """
@@ -231,80 +304,6 @@ class EntranceExamTestCases(ModuleStoreTestCase):
         self.assertNotIn('To access course materials, you must score', resp.content)
         self.assertIn('You have passed the entrance exam.', resp.content)
         self.assertIn('Lesson 1', resp.content)
-
-        self.expected_locked_toc = (
-            [
-                {
-                    'active': True,
-                    'sections': [
-                        {
-                            'url_name': u'Exam_Sequential_-_Subsection_1',
-                            'display_name': u'Exam Sequential - Subsection 1',
-                            'graded': True,
-                            'format': '',
-                            'due': None,
-                            'active': True
-                        }
-                    ],
-                    'url_name': u'Entrance_Exam_Section_-_Chapter_1',
-                    'display_name': u'Entrance Exam Section - Chapter 1'
-                }
-            ]
-        )
-        self.expected_unlocked_toc = (
-            [
-                {
-                    'active': False,
-                    'sections': [
-                        {
-                            'url_name': u'Welcome',
-                            'display_name': u'Welcome',
-                            'graded': False,
-                            'format': '',
-                            'due': None,
-                            'active': False
-                        },
-                        {
-                            'url_name': u'Lesson_1',
-                            'display_name': u'Lesson 1',
-                            'graded': False,
-                            'format': '',
-                            'due': None,
-                            'active': False
-                        }
-                    ],
-                    'url_name': u'Overview',
-                    'display_name': u'Overview'
-                },
-                {
-                    'active': False,
-                    'sections': [],
-                    'url_name': u'Week_1',
-                    'display_name': u'Week 1'
-                },
-                {
-                    'active': False,
-                    'sections': [],
-                    'url_name': u'Instructor',
-                    'display_name': u'Instructor'
-                },
-                {
-                    'active': True,
-                    'sections': [
-                        {
-                            'url_name': u'Exam_Sequential_-_Subsection_1',
-                            'display_name': u'Exam Sequential - Subsection 1',
-                            'graded': True,
-                            'format': '',
-                            'due': None,
-                            'active': True
-                        }
-                    ],
-                    'url_name': u'Entrance_Exam_Section_-_Chapter_1',
-                    'display_name': u'Entrance Exam Section - Chapter 1'
-                }
-            ]
-        )
 
     def test_entrance_exam_gating(self):
         """

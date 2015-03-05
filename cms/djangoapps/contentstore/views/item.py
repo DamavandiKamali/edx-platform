@@ -781,16 +781,16 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
         visibility_state = None
     published = modulestore().has_published_version(xblock) if not is_library_block else None
 
-    # defining the default state 'True' of delete, drag and add actions into xblock_actions dict.
-    xblock_actions = {'deletable': True, 'draggable': True, 'addable': True}
+    # defining the default value 'True' for delete, drag and add new child actions in xblock_actions for each xblock.
+    xblock_actions = {'deletable': True, 'draggable': True, 'childAddable': True}
     explanatory_message = None
     if getattr(xblock, "is_entrance_exam", None):
         # Entrance exam section should not be deletable, draggable and not have 'New Subsection' button.
-        xblock_actions['deletable'] = xblock_actions['addable'] = xblock_actions['draggable'] = False
+        xblock_actions['deletable'] = xblock_actions['childAddable'] = xblock_actions['draggable'] = False
         if parent_xblock is None:
             parent_xblock = get_parent_xblock(xblock)
 
-        explanatory_message = 'Students must score {score}% or higher to access course materials.'.format(
+        explanatory_message = _('Students must score {score}% or higher to access course materials.').format(
             score=int(parent_xblock.entrance_exam_minimum_score_pct * 100))
 
     xblock_info = {
@@ -818,7 +818,7 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
 
     # Entrance exam subsection should be hidden.
     if xblock.category == 'sequential' and getattr(parent_xblock, "is_entrance_exam", False):
-        xblock_info["is_visible"] = False
+        xblock_info["is_header_visible"] = False
 
     if data is not None:
         xblock_info["data"] = data

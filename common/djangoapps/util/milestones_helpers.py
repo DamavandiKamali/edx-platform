@@ -22,6 +22,7 @@ from milestones.api import (
 )
 from milestones.models import MilestoneRelationshipType
 from milestones.exceptions import InvalidMilestoneRelationshipTypeException
+from opaque_keys.edx.keys import UsageKey
 
 NAMESPACE_CHOICES = {
     'ENTRANCE_EXAM': 'entrance_exams'
@@ -173,6 +174,17 @@ def get_required_content(course, user):
             if milestone_path.get('content') and len(milestone_path['content']):
                 for content in milestone_path['content']:
                     required_content.append(content)
+
+    #local imports to avoid circular reference
+    from student.models import EntranceExamConfiguration
+    can_skip_entrance_exam = EntranceExamConfiguration.user_can_skip_entrance_exam(user, course.id)
+    # check if required_content has any entrance exam and user is allowed to skip it
+    # then remove it from required content
+    if required_content and getattr(course, 'entrance_exam_enabled', False) and can_skip_entrance_exam:
+        descriptors = [modulestore().get_item(UsageKey.from_string(content)) for content in required_content]
+        entrance_exam_contents = [unicode(descriptor.location)
+                                  for descriptor in descriptors if descriptor.is_entrance_exam]
+        required_content = list(set(required_content) - set(entrance_exam_contents))
     return required_content
 
 

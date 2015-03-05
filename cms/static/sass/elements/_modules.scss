@@ -439,7 +439,7 @@ $outline-indent-width: $baseline;
 
     // status - release
     .status-release,
-    .status-exam {
+    .explanatory-message {
       @include transition(opacity $tmg-f2 ease-in-out 0s);
       opacity: 0.65;
     }
@@ -465,7 +465,7 @@ $outline-indent-width: $baseline;
 
       // status - release
       > .section-status .status-release,
-        .section-status .status-exam{
+        .section-status .explanatory-message{
         opacity: 1.0;
       }
     }
