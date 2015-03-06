@@ -27,7 +27,7 @@ class AccessTokenExchangeViewTest(AccessTokenExchangeTestMixin):
     """
     def setUp(self):
         super(AccessTokenExchangeViewTest, self).setUp()
-        self.url = reverse("exchange_oauth_token")
+        self.url = reverse("exchange_oauth_token", kwargs={"backend": self.BACKEND})
 
     def _assert_error(self, data, expected_error, expected_error_description):
         response = self.client.post(self.url, data)
@@ -83,6 +83,11 @@ class AccessTokenExchangeViewTest(AccessTokenExchangeTestMixin):
                 "error_description": "Only POST requests allowed.",
             }
         )
+
+    def test_invalid_provider(self):
+        url = reverse("exchange_oauth_token", kwargs={"backend": "invalid"})
+        response = self.client.post(url, self.data)
+        self.assertEqual(response.status_code, 404)
 
 
 # This is necessary because cms does not implement third party auth

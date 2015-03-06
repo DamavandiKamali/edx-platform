@@ -1,21 +1,26 @@
 """
 Views to support third-party to first-party OAuth 2.0 access token exchange
 """
-
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from provider import constants
 from provider.oauth2.views import AccessTokenView as AccessTokenView
+import social.apps.django_app.utils as social_utils
+
 from oauth_exchange.forms import AccessTokenExchangeForm
 
 
 class AccessTokenExchangeView(AccessTokenView):
     """View for access token exchange"""
     @method_decorator(csrf_exempt)
+    @method_decorator(social_utils.strategy("social:complete"))
     def dispatch(self, *args, **kwargs):
         return super(AccessTokenExchangeView, self).dispatch(*args, **kwargs)
 
-    def post(self, request):
+    def get(self, request, _backend):
+        return super(AccessTokenExchangeView, self).get(request)
+
+    def post(self, request, _backend):
         form = AccessTokenExchangeForm(request=request, data=request.POST)
         if not form.is_valid():
             return self.error_response(form.errors)

@@ -18,7 +18,6 @@ from third_party_auth import pipeline
 
 class AccessTokenExchangeForm(ScopeMixin, OAuthForm):
     """Form for access token exchange endpoint"""
-    provider = CharField(required=False)
     access_token = CharField(required=False)
     scope = ScopeChoiceField(choices=SCOPE_NAMES, required=False)
     client_id = CharField(required=False)
@@ -41,9 +40,6 @@ class AccessTokenExchangeForm(ScopeMixin, OAuthForm):
             )
         return field_val
 
-    def clean_provider(self):
-        return self._require_oauth_field("provider")
-
     def clean_access_token(self):
         return self._require_oauth_field("access_token")
 
@@ -54,12 +50,8 @@ class AccessTokenExchangeForm(ScopeMixin, OAuthForm):
         if self._errors:
             return {}
 
-        provider_name = self.cleaned_data["provider"]
-        provider_class = Registry.get_by_backend_name(provider_name)
-        if not (
-                provider_class and
-                issubclass(provider_class.BACKEND_CLASS, social_oauth.BaseOAuth2)
-        ):
+        backend = self.request.social_strategy.backend
+        if not isinstance(backend, social_oauth.BaseOAuth2):
             raise OAuthValidationError(
                 {
                     "error": "invalid_request",
@@ -68,11 +60,6 @@ class AccessTokenExchangeForm(ScopeMixin, OAuthForm):
             )
 
         self.request.session[pipeline.AUTH_ENTRY_KEY] = pipeline.AUTH_ENTRY_API
-        strategy = social_utils.load_strategy(
-            request=self.request,
-            backend=provider_class.BACKEND_CLASS.name
-        )
-        backend = strategy.backend
 
         client_id = self.cleaned_data["client_id"]
         try:
@@ -102,7 +89,7 @@ class AccessTokenExchangeForm(ScopeMixin, OAuthForm):
             self.cleaned_data["user"] = user
         else:
             # Ensure user does not re-enter the pipeline
-            strategy.clean_partial_pipeline()
+            self.request.social_strategy.clean_partial_pipeline()
             raise OAuthValidationError(
                 {
                     "error": "invalid_grant",

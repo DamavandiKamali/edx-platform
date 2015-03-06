@@ -3,8 +3,6 @@ Test utilities for OAuth access token exchange
 """
 import json
 
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.test.client import RequestFactory
 import httpretty
 import provider.constants
 from provider.oauth2.models import Client
@@ -30,13 +28,10 @@ class AccessTokenExchangeTestMixin(object):
         )
         self.social_uid = "test_social_uid"
         self.user = UserFactory()
-        UserSocialAuth.objects.create(user=self.user, provider=self.PROVIDER, uid=self.social_uid)
-        self.request = RequestFactory().post("dummy_url")
-        SessionMiddleware().process_request(self.request)
+        UserSocialAuth.objects.create(user=self.user, provider=self.BACKEND, uid=self.social_uid)
         self.access_token = "test_access_token"
         # Initialize to minimal data
         self.data = {
-            "provider": self.PROVIDER,
             "access_token": self.access_token,
             "client_id": self.client_id,
         }
@@ -84,18 +79,11 @@ class AccessTokenExchangeTestMixin(object):
         self._assert_success(self.data, expected_scopes=["profile", "email"])
 
     def test_missing_fields(self):
-        for field in ["provider", "access_token", "client_id"]:
+        for field in ["access_token", "client_id"]:
             data = dict(self.data)
             del data[field]
             self._assert_error(data, "invalid_request", "{} is required".format(field))
 
-    def test_invalid_provider(self):
-        self.data["provider"] = "nonexistent_provider"
-        self._assert_error(
-            self.data,
-            "invalid_request",
-            "nonexistent_provider is not a supported provider"
-        )
 
     def test_invalid_client(self):
         self.data["client_id"] = "nonexistent_client"
@@ -126,13 +114,13 @@ class AccessTokenExchangeTestMixin(object):
 
 class AccessTokenExchangeMixinFacebook(object):
     """Tests access token exchange with the Facebook backend"""
-    PROVIDER = "facebook"
+    BACKEND = "facebook"
     USER_URL = "https://graph.facebook.com/me"
     UID_FIELD = "id"
 
 
 class AccessTokenExchangeMixinGoogle(object):
     """Tests access token exchange with the Google backend"""
-    PROVIDER = "google-oauth2"
+    BACKEND = "google-oauth2"
     USER_URL = "https://www.googleapis.com/oauth2/v1/userinfo"
     UID_FIELD = "email"

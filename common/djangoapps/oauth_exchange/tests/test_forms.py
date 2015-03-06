@@ -4,9 +4,12 @@ Tests for OAuth token exchange forms
 import unittest
 
 from django.conf import settings
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import TestCase
+from django.test.client import RequestFactory
 import httpretty
 from provider import scope
+import social.apps.django_app.utils as social_utils
 
 from oauth_exchange.forms import AccessTokenExchangeForm
 from oauth_exchange.tests.utils import (
@@ -20,6 +23,12 @@ class AccessTokenExchangeFormTest(AccessTokenExchangeTestMixin):
     """
     Mixin that defines test cases for AccessTokenExchangeForm
     """
+    def setUp(self):
+        super(AccessTokenExchangeFormTest, self).setUp()
+        self.request = RequestFactory().post("dummy_url")
+        SessionMiddleware().process_request(self.request)
+        self.request.social_strategy = social_utils.load_strategy(self.request, self.BACKEND)
+
     def _assert_error(self, data, expected_error, expected_error_description):
         form = AccessTokenExchangeForm(request=self.request, data=data)
         self.assertEqual(
