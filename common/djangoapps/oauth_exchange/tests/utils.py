@@ -84,7 +84,6 @@ class AccessTokenExchangeTestMixin(object):
             del data[field]
             self._assert_error(data, "invalid_request", "{} is required".format(field))
 
-
     def test_invalid_client(self):
         self.data["client_id"] = "nonexistent_client"
         self._assert_error(

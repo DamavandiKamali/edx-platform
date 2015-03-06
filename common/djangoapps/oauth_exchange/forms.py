@@ -9,10 +9,8 @@ from provider.forms import OAuthForm, OAuthValidationError
 from provider.oauth2.forms import ScopeChoiceField, ScopeMixin
 from provider.oauth2.models import Client
 from requests import HTTPError
-import social.apps.django_app.utils as social_utils
 from social.backends import oauth as social_oauth
 
-from third_party_auth.provider import Registry
 from third_party_auth import pipeline
 
 
@@ -55,7 +53,7 @@ class AccessTokenExchangeForm(ScopeMixin, OAuthForm):
             raise OAuthValidationError(
                 {
                     "error": "invalid_request",
-                    "error_description": "{} is not a supported provider".format(provider_name),
+                    "error_description": "{} is not a supported provider".format(backend.name),
                 }
             )
 
