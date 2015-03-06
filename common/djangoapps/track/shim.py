@@ -103,7 +103,7 @@ class VideoEventProcessor(object):
         if name not in NAME_TO_EVENT_TYPE_MAP:
             return
 
-        #Convert edx.video.seeked to edx.video.positiion.changed
+        # Convert edx.video.seeked to edx.video.positiion.changed
         if name == "edx.video.seeked":
             event['name'] = "edx.video.position.changed"
 
@@ -111,7 +111,6 @@ class VideoEventProcessor(object):
 
         if 'event' not in event:
             return
-
         payload = event['event']
 
         if 'module_id' in payload:
@@ -130,7 +129,7 @@ class VideoEventProcessor(object):
 
         context = event['context']
 
-        #For converting seek_type to seek and skip|slide to onSlideSeek|onSkipSeek
+        # For converting seek_type to seek and skip|slide to onSlideSeek|onSkipSeek
         if 'seek_type' in payload:
             seek_type = payload['seek_type']
             if seek_type == 'slide':
@@ -139,7 +138,7 @@ class VideoEventProcessor(object):
                 payload['type'] = "onSkipSeek"
             del payload['seek_type']
 
-        #For the iOS build that is returning a +30 for back skip 30
+        # For the iOS build that is returning a +30 for back skip 30
         if (
             context['application']['version'] == "1.0.02" and
             context['application']['name'] == "edx.mobileapp.iOS"
@@ -151,7 +150,7 @@ class VideoEventProcessor(object):
                 ):
                     payload['requested_skip_interval'] = -30
 
-        #For the Android build that isn't distinguishing between skip and seek
+        #  For the Android build that isn't distinguishing between skip and seek
         if 'requested_skip_interval' in payload:
             if abs(payload['requested_skip_interval']) != 30:
                 if 'type' in payload:
