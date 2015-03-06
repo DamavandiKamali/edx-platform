@@ -17,7 +17,8 @@ from third_party_auth import pipeline
 
 
 class AccessTokenExchangeForm(ScopeMixin, OAuthForm):
-    provider = CharField(required=False) # TODO: rename
+    """Form for access token exchange endpoint"""
+    provider = CharField(required=False)
     access_token = CharField(required=False)
     scope = ScopeChoiceField(choices=SCOPE_NAMES, required=False)
     client_id = CharField(required=False)
@@ -27,6 +28,9 @@ class AccessTokenExchangeForm(ScopeMixin, OAuthForm):
         self.request = request
 
     def _require_oauth_field(self, field_name):
+        """
+        Raise an appropriate OAuthValidationError error if the field is missing
+        """
         field_val = self.cleaned_data.get(field_name)
         if not field_val:
             raise OAuthValidationError(
@@ -92,7 +96,7 @@ class AccessTokenExchangeForm(ScopeMixin, OAuthForm):
         user = None
         try:
             user = backend.do_auth(self.cleaned_data.get("access_token"))
-        except HTTPError as e:
+        except HTTPError:
             pass
         if user and isinstance(user, User):
             self.cleaned_data["user"] = user

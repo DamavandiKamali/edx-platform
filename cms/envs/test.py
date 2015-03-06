@@ -264,3 +264,7 @@ MOCK_SEARCH_BACKING_FILE = (
 
 # Dummy secret key for dev/test
 SECRET_KEY = '85920908f28904ed733fe576320db18cabd7b6cd'
+
+# This is practically unused but needed by the oauth2_provider package, which
+# some tests in common/ rely on.
+OAUTH_OIDC_ISSUER = 'https://example.com/oauth2'

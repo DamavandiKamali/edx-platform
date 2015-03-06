@@ -1,3 +1,7 @@
+"""
+Views to support third-party to first-party OAuth 2.0 access token exchange
+"""
+
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from provider import constants
@@ -6,6 +10,7 @@ from oauth_exchange.forms import AccessTokenExchangeForm
 
 
 class AccessTokenExchangeView(AccessTokenView):
+    """View for access token exchange"""
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super(AccessTokenExchangeView, self).dispatch(*args, **kwargs)
@@ -20,8 +25,8 @@ class AccessTokenExchangeView(AccessTokenView):
         client = form.cleaned_data["client"]
 
         if constants.SINGLE_ACCESS_TOKEN:
-            edx_acces_token = self.get_access_token(request, user, scope, client)
+            edx_access_token = self.get_access_token(request, user, scope, client)
         else:
-            edx_acces_token = self.create_access_token(request, user, scope, client)
+            edx_access_token = self.create_access_token(request, user, scope, client)
 
-        return self.access_token_response(edx_acces_token)
+        return self.access_token_response(edx_access_token)

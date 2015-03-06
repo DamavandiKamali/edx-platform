@@ -1,3 +1,6 @@
+"""
+Tests for OAuth token exchange forms
+"""
 import unittest
 
 from django.conf import settings
@@ -14,6 +17,9 @@ from oauth_exchange.tests.utils import (
 
 
 class AccessTokenExchangeFormTest(AccessTokenExchangeTestMixin):
+    """
+    Mixin that defines test cases for AccessTokenExchangeForm
+    """
     def _assert_error(self, data, expected_error, expected_error_description):
         form = AccessTokenExchangeForm(request=self.request, data=data)
         self.assertEqual(
@@ -38,6 +44,9 @@ class AccessTokenExchangeFormTestFacebook(
         AccessTokenExchangeMixinFacebook,
         TestCase
 ):
+    """
+    Tests for AccessTokenExchangeForm used with Facebook
+    """
     pass
 
 
@@ -49,4 +58,7 @@ class AccessTokenExchangeFormTestGoogle(
         AccessTokenExchangeMixinGoogle,
         TestCase
 ):
+    """
+    Tests for AccessTokenExchangeForm used with Google
+    """
     pass

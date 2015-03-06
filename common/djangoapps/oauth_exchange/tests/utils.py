@@ -1,3 +1,6 @@
+"""
+Test utilities for OAuth access token exchange
+"""
 import json
 
 from django.contrib.sessions.middleware import SessionMiddleware
@@ -11,6 +14,12 @@ from student.tests.factories import UserFactory
 
 
 class AccessTokenExchangeTestMixin(object):
+    """
+    A mixin to define test cases for access token exchange. The following
+    methods must be implemented by subclasses:
+    * _assert_error(data, expected_error, expected_error_description)
+    * _assert_success(data, expected_scopes)
+    """
     def setUp(self):
         super(AccessTokenExchangeTestMixin, self).setUp()
 
@@ -50,6 +59,20 @@ class AccessTokenExchangeTestMixin(object):
             status=status,
             content_type="application/json"
         )
+
+    def _assert_error(self, _data, _expected_error, _expected_error_description):
+        """
+        Given request data, execute a test and check that the expected error
+        was returned (along with any other appropriate assertions).
+        """
+        raise NotImplementedError()
+
+    def _assert_success(self, data, expected_scopes):
+        """
+        Given request data, execute a test and check that the expected scopes
+        were returned (along with any other appropriate assertions).
+        """
+        raise NotImplementedError()
 
     def test_minimal(self):
         self._setup_user_response(success=True)
@@ -103,7 +126,7 @@ class AccessTokenExchangeTestMixin(object):
 
 class AccessTokenExchangeMixinFacebook(object):
     """Tests access token exchange with the Facebook backend"""
-    PROVIDER="facebook"
+    PROVIDER = "facebook"
     USER_URL = "https://graph.facebook.com/me"
     UID_FIELD = "id"
 

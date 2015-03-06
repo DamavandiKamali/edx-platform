@@ -1,3 +1,6 @@
+"""
+Tests for OAuth token exchange views
+"""
 from datetime import timedelta
 import json
 import mock
@@ -19,6 +22,9 @@ from oauth_exchange.tests.utils import (
 
 
 class AccessTokenExchangeViewTest(AccessTokenExchangeTestMixin):
+    """
+    Mixin that defines test cases for AccessTokenExchangeView
+    """
     def setUp(self):
         super(AccessTokenExchangeViewTest, self).setUp()
         self.url = reverse("exchange_oauth_token")
@@ -57,8 +63,8 @@ class AccessTokenExchangeViewTest(AccessTokenExchangeTestMixin):
         self._setup_user_response(success=True)
         for single_access_token in [True, False]:
             with mock.patch(
-                    "oauth_exchange.views.constants.SINGLE_ACCESS_TOKEN",
-                    single_access_token
+                "oauth_exchange.views.constants.SINGLE_ACCESS_TOKEN",
+                single_access_token
             ):
                 first_response = self.client.post(self.url, self.data)
                 second_response = self.client.post(self.url, self.data)
@@ -78,6 +84,7 @@ class AccessTokenExchangeViewTest(AccessTokenExchangeTestMixin):
             }
         )
 
+
 # This is necessary because cms does not implement third party auth
 @unittest.skipUnless(settings.FEATURES.get("ENABLE_THIRD_PARTY_AUTH"), "third party auth not enabled")
 @httpretty.activate
@@ -86,6 +93,9 @@ class AccessTokenExchangeViewTestFacebook(
         AccessTokenExchangeMixinFacebook,
         TestCase
 ):
+    """
+    Tests for AccessTokenExchangeView used with Facebook
+    """
     pass
 
 
@@ -97,4 +107,7 @@ class AccessTokenExchangeViewTestGoogle(
         AccessTokenExchangeMixinGoogle,
         TestCase
 ):
+    """
+    Tests for AccessTokenExchangeView used with Google
+    """
     pass
