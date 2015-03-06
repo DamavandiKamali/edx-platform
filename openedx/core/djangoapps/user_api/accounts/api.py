@@ -8,7 +8,7 @@ from django.conf import settings
 from openedx.core.djangoapps.user_api.api.account import AccountUserNotFound, AccountUpdateError, AccountNotAuthorized
 from .serializers import AccountLegacyProfileSerializer, AccountUserSerializer
 from student.models import UserProfile
-from student.views import do_email_change_request
+from student.views import validate_new_email, do_email_change_request
 from ..models import UserPreference
 from . import ACCOUNT_VISIBILITY_PREF_KEY, ALL_USERS_VISIBILITY
 
@@ -123,34 +123,51 @@ def update_account_settings(requesting_user, update, username=None):
     read_only_fields = set(update.keys()).intersection(
         AccountUserSerializer.Meta.read_only_fields + AccountLegacyProfileSerializer.Meta.read_only_fields
     )
+
+    # Build up all field errors, whether read-only, validation, or email errors.
+    field_errors = {}
+
     if read_only_fields:
-        field_errors = {}
         for read_only_field in read_only_fields:
             field_errors[read_only_field] = {
                 "developer_message": "This field is not editable via this API",
                 "user_message": _("Field '{field_name}' cannot be edited.".format(field_name=read_only_field))
             }
-        raise AccountUpdateError({"field_errors": field_errors})
-
-    # If the user asked to change email, send the request now.
-    if new_email:
-        try:
-            do_email_change_request(existing_user, new_email)
-        except ValueError as err:
-            response_data = {
-                "developer_message": "Error thrown from do_email_change_request: '{}'".format(err.message),
-                "user_message": err.message
-            }
-            raise AccountUpdateError(response_data)
+            del update[read_only_field]
 
     user_serializer = AccountUserSerializer(existing_user, data=update)
     legacy_profile_serializer = AccountLegacyProfileSerializer(existing_user_profile, data=update)
 
     for serializer in user_serializer, legacy_profile_serializer:
-        validation_errors = _get_validation_errors(update, serializer)
-        if validation_errors:
-            raise AccountUpdateError(validation_errors)
+        field_errors = _add_serializer_errors(update, serializer, field_errors)
+
+    # If the user asked to change email, validate it.
+    if new_email:
+        try:
+            validate_new_email(existing_user, new_email)
+        except ValueError as err:
+            field_errors["email"] = {
+                "developer_message": "Error thrown from validate_new_email: '{}'".format(err.message),
+                "user_message": err.message
+            }
+
+    # If we have encountered any validation errors, return them to the user.
+    if field_errors:
+        raise AccountUpdateError({"field_errors": field_errors})
+
+    # If everything validated, go ahead and save the serializers.
+    for serializer in user_serializer, legacy_profile_serializer:
         serializer.save()
+
+    # And try to send the email change request if necessary.
+    if new_email:
+        try:
+            do_email_change_request(existing_user, new_email)
+        except ValueError as err:
+            raise AccountUpdateError({
+                "developer_message": "Error thrown from do_email_change_request: '{}'".format(err.message),
+                "user_message": err.message
+            })
 
     # If the name was changed, store information about the change operation. This is outside of the
     # serializer so that we can store who requested the change.
@@ -180,13 +197,12 @@ def _get_user_and_profile(username):
     return existing_user, existing_user_profile
 
 
-def _get_validation_errors(update, serializer):
+def _add_serializer_errors(update, serializer, field_errors):
     """
-    Helper method that returns any validation errors that are present.
+    Helper method that adds any validation errors that are present in the serializer to
+    the supplied field_errors dict.
     """
-    validation_errors = {}
     if not serializer.is_valid():
-        field_errors = {}
         errors = serializer.errors
         for key, value in errors.iteritems():
             if isinstance(value, list) and len(value) > 0:
@@ -200,5 +216,4 @@ def _get_validation_errors(update, serializer):
                 )
             }
 
-        validation_errors['field_errors'] = field_errors
-    return validation_errors
+    return field_errors

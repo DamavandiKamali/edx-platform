@@ -18,7 +18,6 @@ from .api import get_account_settings, update_account_settings
 class AccountView(APIView):
     """
         **Use Cases**
-        TODO: update documentation!
 
             Get or update the user's account information. Updates are only supported through merge patch.
 
@@ -30,45 +29,69 @@ class AccountView(APIView):
 
         **Response Values for GET**
 
-            * username: username associated with the account (not editable)
+            If the user making the request has username "username", or has "is_staff" access, the following
+            fields will be returned:
 
-            * name: full name of the user (must be at least two characters)
+                * username: username associated with the account (not editable)
 
-            * email: email for the user (the new email address must be confirmed via a confirmation email, so GET will
-                not reflect the change until the address has been confirmed)
+                * name: full name of the user (must be at least two characters)
 
-            * date_joined: date this account was created (not editable), in the string format provided by
-                datetime (for example, "2014-08-26T17:52:11Z")
+                * email: email for the user (the new email address must be confirmed via a confirmation email, so GET will
+                    not reflect the change until the address has been confirmed)
 
-            * gender: null (not set), "m", "f", or "o"
+                * date_joined: date this account was created (not editable), in the string format provided by
+                    datetime (for example, "2014-08-26T17:52:11Z")
 
-            * year_of_birth: null or integer year
+                * gender: null (not set), "m", "f", or "o"
 
-            * level_of_education: null (not set), or one of the following choices:
+                * year_of_birth: null or integer year
 
-                * "p" signifying "Doctorate"
-                * "m" signifying "Master's or professional degree"
-                * "b" signifying "Bachelor's degree"
-                * "a" signifying "Associate's degree"
-                * "hs" signifying "Secondary/high school"
-                * "jhs" signifying "Junior secondary/junior high/middle school"
-                * "el" signifying "Elementary/primary school"
-                * "none" signifying "None"
-                * "o" signifying "Other"
+                * level_of_education: null (not set), or one of the following choices:
 
-             * language: null or name of preferred language
+                    * "p" signifying "Doctorate"
+                    * "m" signifying "Master's or professional degree"
+                    * "b" signifying "Bachelor's degree"
+                    * "a" signifying "Associate's degree"
+                    * "hs" signifying "Secondary/high school"
+                    * "jhs" signifying "Junior secondary/junior high/middle school"
+                    * "el" signifying "Elementary/primary school"
+                    * "none" signifying "None"
+                    * "o" signifying "Other"
 
-             * country: null (not set), or a Country corresponding to one of the ISO 3166-1 countries
+                * language: null or name of preferred language
 
-             * mailing_address: null or textual representation of mailing address
+                * country: null (not set), or a Country corresponding to one of the ISO 3166-1 countries
 
-             * goals: null or textual representation of goals
+                * mailing_address: null or textual representation of mailing address
+
+                * goals: null or textual representation of goals
+
+            If a user without "is_staff" access has requested account information for a different user,
+            only a subset of these fields will be returned. The actual fields returned depend on the configuration
+            setting ACCOUNT_VISIBILITY_CONFIGURATION, and the visibility preference of the user with username
+            "username".
+
+            Note that a user can view which account fields they have shared with other users by requesting their
+            own username and providing the url parameter "view=shared".
+
+            This method will return a 404 if no user exists with username "username".
 
         **Response for PATCH**
 
-             Returns a 204 status if successful, with no additional content.
-             If "application/merge-patch+json" is not the specified content_type, returns a 415 status.
+            Users can only modify their own account information. If the requesting user does not have username
+            "username", this method will return with a status of 404.
 
+            This method will also return a 404 if no user exists with username "username".
+
+            If "application/merge-patch+json" is not the specified content_type, this method returns a 415 status.
+
+            If the update could not be completed due to validation errors, this method returns a 400 with all
+            field-specific error messages in the "field_errors" field of the returned JSON.
+
+            If the update could not be completed due to failure at the time of update, this method returns a 400 with
+            specific errors in the returned JSON.
+
+            If the updated is successful, a 204 status is returned with no additional content.
     """
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
