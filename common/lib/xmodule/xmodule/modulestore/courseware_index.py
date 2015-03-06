@@ -3,7 +3,6 @@ from __future__ import absolute_import
 
 import logging
 
-from django.conf import settings
 from django.utils.translation import ugettext as _
 from opaque_keys.edx.locator import CourseLocator
 from search.search_engine_base import SearchEngine
@@ -165,7 +164,7 @@ class CoursewareSearchIndexer(object):
 
         from eventtracking import tracker as track
         tracker = track.get_tracker()
-        tracking_context = tracker.resolve_context()  # pylint: disable=no-member
+        tracker.resolve_context()  # pylint: disable=no-member
         data = {
             "indexed_count": indexed_count,
             'category': 'courseware_index',
