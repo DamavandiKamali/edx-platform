@@ -611,7 +611,9 @@ class TestPayAndVerifyView(UrlResetMixin, ModuleStoreTestCase):
             course_id=course.id,
             mode_slug="verified"
         )
-        expiration = datetime(1999, 1, 2, tzinfo=pytz.UTC)
+
+        # adding the expiring date according to US time-zone
+        expiration = datetime(1999, 1, 2, 5, 0, tzinfo=pytz.UTC)
         mode.expiration_datetime = expiration
         mode.save()
 
@@ -622,7 +624,7 @@ class TestPayAndVerifyView(UrlResetMixin, ModuleStoreTestCase):
         # to the student that the deadline has passed
         response = self._get_page("verify_student_verify_later", course.id)
         self.assertContains(response, "verification deadline")
-        self.assertContains(response, "Jan 02, 1999 at 00:00 UTC")
+        self.assertContains(response, "Jan 02, 1999 at 00:00 EST")
 
     @mock.patch.dict(settings.FEATURES, {'EMBARGO': True})
     def test_embargo_restrict(self):

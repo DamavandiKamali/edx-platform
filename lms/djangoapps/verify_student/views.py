@@ -7,7 +7,7 @@ import logging
 import decimal
 import datetime
 from collections import namedtuple
-from pytz import UTC
+from pytz import UTC, timezone
 from ipware.ip import get_ip
 
 from edxmako.shortcuts import render_to_response, render_to_string
@@ -285,11 +285,14 @@ class PayAndVerifyView(View):
             # if so, we should show a message explaining that the verification
             # deadline has passed.
             log.info(u"Verification deadline for '%s' has passed.", course_id)
+            # converting the datetime according to default time zone of edx-platform.
+            # So that user will see the time according to django admin input
+            expiration_datetime = expired_course_mode.expiration_datetime.astimezone(timezone(settings.TIME_ZONE))
             context = {
                 'course': course,
                 'deadline': (
-                    get_default_time_display(expired_course_mode.expiration_datetime)
-                    if expired_course_mode.expiration_datetime else ""
+                    get_default_time_display(expiration_datetime)
+                    if expiration_datetime else ""
                 )
             }
             return render_to_response("verify_student/missed_verification_deadline.html", context)
