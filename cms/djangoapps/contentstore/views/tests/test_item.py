@@ -1444,17 +1444,20 @@ class TestXBlockInfo(ItemTest):
         self.assertIsNone(xblock_info.get('is_header_visible', None))
 
     def test_entrance_exam_sequential_xblock_info(self):
-        self.chapter.is_entrance_exam = True
+        chapter = ItemFactory.create(
+            parent_location=self.course.location, category='chapter', display_name="Entrance Exam",
+            user_id=self.user.id, is_entrance_exam=True, in_entrance_exam=True
+        )
+
         subsection = ItemFactory.create(
-            parent_location=self.chapter.location, category='sequential', display_name="Subsection - Entrance Exam",
-            user_id=self.user.id
+            parent_location=chapter.location, category='sequential', display_name="Subsection - Entrance Exam",
+            user_id=self.user.id, in_entrance_exam=True
         )
         subsection = modulestore().get_item(subsection.location)
         xblock_info = create_xblock_info(
             subsection,
             include_child_info=True,
-            include_children_predicate=ALWAYS,
-            parent_xblock=self.chapter
+            include_children_predicate=ALWAYS
         )
         # in case of entrance exam subsection, header should be hidden.
         self.assertEqual(xblock_info['is_header_visible'], False)

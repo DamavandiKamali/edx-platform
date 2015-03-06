@@ -816,9 +816,13 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
         "explanatory_message": explanatory_message
     }
 
-    # Entrance exam subsection should be hidden.
-    if xblock.category == 'sequential' and getattr(parent_xblock, "is_entrance_exam", False):
-        xblock_info["is_header_visible"] = False
+    # Entrance exam subsection should be hidden. in_entrance_exam is inherited metadata, all children will have it.
+    if xblock.category == 'sequential' and getattr(xblock, "in_entrance_exam", False):
+        # check for parent xblock.
+        if parent_xblock is None:
+            parent_xblock = get_parent_xblock(xblock)
+        if getattr(parent_xblock, "is_entrance_exam", None):
+            xblock_info["is_header_visible"] = False
 
     if data is not None:
         xblock_info["data"] = data
