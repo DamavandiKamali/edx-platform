@@ -23,6 +23,7 @@ from enrollment.errors import (
     CourseModeNotFoundError, CourseEnrollmentExistsError
 )
 
+
 class EnrollmentUserThrottle(UserRateThrottle):
     """Limit the number of requests users can make to the enrollment API."""
     # TODO Limit significantly after performance testing.  # pylint: disable=fixme
