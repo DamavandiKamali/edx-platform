@@ -1646,6 +1646,12 @@ INSTALLED_APPS = (
     'cors_csrf'
 )
 
+######################### CSRF #########################################
+
+# Forwards-compatibility with Django 1.7
+CSRF_COOKIE_AGE = 60 * 60 * 24 * 7 * 52
+
+
 ######################### MARKETING SITE ###############################
 EDXMKTG_COOKIE_NAME = 'edxloggedin'
 MKTG_URLS = {}

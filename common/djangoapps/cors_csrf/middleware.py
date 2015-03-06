@@ -196,7 +196,7 @@ class CsrfCrossDomainCookieMiddleware(object):
             response.set_cookie(
                 settings.CROSS_DOMAIN_CSRF_COOKIE_NAME,
                 request.META['CSRF_COOKIE'],
-                max_age=(60 * 60 * 24 * 7 * 52),
+                max_age=settings.CSRF_COOKIE_AGE,
                 domain=settings.CROSS_DOMAIN_CSRF_COOKIE_DOMAIN,
                 path=settings.CSRF_COOKIE_PATH,
                 secure=True

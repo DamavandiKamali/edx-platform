@@ -306,16 +306,12 @@ VIDEO_CDN_URL = ENV_TOKENS.get('VIDEO_CDN_URL', {})
 
 ############# CORS headers for cross-domain requests #################
 
-if FEATURES.get('ENABLE_CORS_HEADERS'):
+if FEATURES.get('ENABLE_CORS_HEADERS') or FEATURES.get('ENABLE_CROSS_DOMAIN_CSRF_COOKIE'):
     CORS_ALLOW_CREDENTIALS = True
     CORS_ORIGIN_WHITELIST = ENV_TOKENS.get('CORS_ORIGIN_WHITELIST', ())
     CORS_ORIGIN_ALLOW_ALL = ENV_TOKENS.get('CORS_ORIGIN_ALLOW_ALL', False)
     CORS_ALLOW_INSECURE = ENV_TOKENS.get('CORS_ALLOW_INSECURE', False)
 
-
-############ CSRF for cross-domain requests ####################
-
-if FEATURES.get('ENABLE_CROSS_DOMAIN_CSRF_COOKIE'):
     # If setting a cross-domain cookie, it's really important to choose
     # a name for the cookie that is DIFFERENT than the cookies used
     # by each subdomain.  For example, suppose the applications
