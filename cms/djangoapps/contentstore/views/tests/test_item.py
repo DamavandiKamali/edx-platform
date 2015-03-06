@@ -1422,6 +1422,7 @@ class TestXBlockInfo(ItemTest):
         self.assertEqual(actions['draggable'], False)
         self.assertEqual(actions['childAddable'], False)
         self.assertEqual(xblock_info['display_name'], 'Entrance Exam')
+        self.assertIsNone(xblock_info.get('is_header_visible', None))
 
     def test_none_entrance_exam_chapter_xblock_info(self):
         chapter = ItemFactory.create(

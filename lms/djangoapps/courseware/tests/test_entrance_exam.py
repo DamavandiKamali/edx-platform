@@ -236,6 +236,16 @@ class EntranceExamTestCases(ModuleStoreTestCase):
         self.assertNotIn('Exam Problem - Problem 1', resp.content)
         self.assertNotIn('Exam Problem - Problem 2', resp.content)
 
+    @patch.dict('django.conf.settings.FEATURES', {'ENTRANCE_EXAMS': True})
+    def test_entrance_exam_content_presence(self):
+        """
+        Unit Test: If entrance exam is enabled then its content e.g. problems should be loaded.
+        """
+        url = reverse('courseware', kwargs={'course_id': unicode(self.course.id)})
+        resp = self.client.get(url)
+        self.assertIn('Exam Problem - Problem 1', resp.content)
+        self.assertIn('Exam Problem - Problem 2', resp.content)
+
     def test_entrance_exam_requirement_message(self):
         """
         Unit Test: entrance exam requirement message should be present in response

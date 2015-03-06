@@ -412,18 +412,18 @@ def _index_bulk_op(request, course_key, chapter, section, position):
             # Show empty courseware for a course with no units
             return render_to_response('courseware/courseware.html', context)
         elif chapter is None:
-            # Check to see if the course is gated on required content (such as an Entrance Exam)
-            # before access the course then redirect the view with entrance exam content e.g. chapter and section.
+            # Check first to see if we should instead redirect the user to an Entrance Exam
             if settings.FEATURES.get('ENTRANCE_EXAMS', False) and course.entrance_exam_enabled:
                 exam_chapter, __ = get_entrance_exam_content_info(request, course)
                 if exam_chapter is not None:
                     exam_section = None
                     if exam_chapter.get_children():
                         exam_section = exam_chapter.get_children()[0]
-                    return redirect('courseware_section',
-                                    course_id=course_key.to_deprecated_string(),
-                                    chapter=exam_chapter.url_name,
-                                    section=exam_section.url_name)
+                        if exam_section:
+                            return redirect('courseware_section',
+                                            course_id=unicode(course_key),
+                                            chapter=exam_chapter.url_name,
+                                            section=exam_section.url_name)
 
             # passing CONTENT_DEPTH avoids returning 404 for a course with an
             # empty first section and a second section with content

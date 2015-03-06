@@ -45,10 +45,9 @@ define(["jquery", "underscore", "gettext", "js/views/baseview", "js/views/utils/
                 this.addButtonActions(this.$el);
                 this.addNameEditor();
 
-                if (this.model.get('is_header_visible') !== null) {
-                    // Currently an entrance exam does not contains subsection.
-                    // So we are setting the locator in order to show expanded.
-                    if (!this.model.get('is_header_visible')) {
+                // For cases in which we need to suppress the header controls during rendering, we'll
+                // need to add the current model's id/locator to the set of expanded locators
+                if (this.model.get('is_header_visible') !== null) && (!this.model.get('is_header_visible')) {
                         var locator = this.model.get('id');
                         if(!_.isUndefined(this.expandedLocators) && !this.expandedLocators.contains(locator)) {
                             this.expandedLocators.add(locator);

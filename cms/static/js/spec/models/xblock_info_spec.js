@@ -29,6 +29,15 @@ define(['backbone', 'js/models/xblock_info'],
                     .isChildAddable()).toBe(true);
             });
 
+            it('displays icons e.g. trash icon, drag when actions are undefined', function(){
+                expect(new XBlockInfo({'category': 'chapter', 'actions': {}})
+                    .isDeletable()).toBe(true);
+                expect(new XBlockInfo({'category': 'chapter', 'actions': {}})
+                    .isDraggable()).toBe(true);
+                expect(new XBlockInfo({'category': 'chapter', 'actions': {}})
+                    .isChildAddable()).toBe(true);
+            });
+
             it('works correct to hide header content', function(){
                 expect(new XBlockInfo({'category': 'sequential', 'is_header_visible': false})
                     .isHeaderVisible()).toBe(false);

@@ -195,7 +195,7 @@ function(Backbone, _, str, ModuleUtils) {
         },
 
         isHeaderVisible: function(){
-            if(this.get('is_header_visible')!= null) {
+            if(this.get('is_header_visible') !== null) {
               return this.get('is_header_visible');
             }
             return true;
@@ -207,7 +207,7 @@ function(Backbone, _, str, ModuleUtils) {
         */
         isActionRequired: function(actionName) {
             var actions = this.get('actions');
-            if(actions !=null) {
+            if(actions !== null) {
                 if (_.has(actions, actionName) && !actions[actionName]) {
                     return false;
                 }
