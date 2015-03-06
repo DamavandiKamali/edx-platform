@@ -57,9 +57,8 @@ def is_cross_domain_request_allowed(request):
 
     We allow a cross-domain request only if:
 
-    1) The request has an http referer header.
-    2) The request is made securely and the referer has "https://" as the protocol.
-    3) The referer domain has been whitelisted.
+    1) The request is made securely and the referer has "https://" as the protocol.
+    2) The referer domain has been whitelisted.
 
     Arguments:
         request (HttpRequest)
@@ -68,35 +67,38 @@ def is_cross_domain_request_allowed(request):
         bool
 
     """
-    referer = request.META.get('HTTP_REFERER')
-    if not referer:
-        log.debug("Request does not have a referer, so it is not a cross-domain request.")
-        return False
-    referer_parts = urlparse.urlparse(referer)
+    # Use CORS_ALLOW_INSECURE *only* for development and testing environments;
+    # it should never be enabled in production.
+    if not getattr(settings, 'CORS_ALLOW_INSECURE', False):
+        if not request.is_secure():
+            log.info(
+                "Request is not secure, so we cannot send the CSRF token. "
+                "For testing purposes, you can disable this check by setting "
+                "`CORS_ALLOW_INSECURE` to True in the settings"
+            )
+            return False
+
+        referer = request.META.get('HTTP_REFERER')
+        if not referer:
+            log.info("No referer provided over a secure connection, so we cannot check the protocol.")
+            return False
+
+        referer_parts = urlparse.urlparse(referer)
+        if not referer_parts.scheme == 'https':
+            log.info("Referer '%s' must have the scheme 'https'")
+            return False
 
     domain_is_whitelisted = (
         getattr(settings, 'CORS_ORIGIN_ALLOW_ALL', False) or
         referer_parts.hostname in getattr(settings, 'CORS_ORIGIN_WHITELIST', [])
     )
     if not domain_is_whitelisted:
-        log.debug(
+        log.info(
             (
                 "Domain '%s' is not on the cross domain whitelist.  "
                 "Add the domain to `CORS_ORIGIN_WHITELIST` or set "
                 "`CORS_ORIGIN_ALLOW_ALL` to True in the settings."
             ), referer_parts.hostname
-        )
-        return False
-
-    request_is_secure = (
-        (request.is_secure() and referer_parts.scheme == 'https') or
-        getattr(settings, 'CORS_ALLOW_INSECURE', False)
-    )
-    if not request_is_secure:
-        log.debug(
-            "Request is not secure, so we cannot send the CSRF token. "
-            "For testing purposes, you can disable this check by setting "
-            "`CORS_ALLOW_INSECURE` to True in the settings"
         )
         return False
 
@@ -110,13 +112,13 @@ class CorsCSRFMiddleware(CsrfViewMiddleware):
     def __init__(self):
         """Disable the middleware if the feature flag is disabled. """
         if not settings.FEATURES.get('ENABLE_CORS_HEADERS'):
-            log.debug("CorsCSRFMiddleware has been disabled.")
+            log.info("CorsCSRFMiddleware has been disabled.")
             raise MiddlewareNotUsed()
 
     def process_view(self, request, callback, callback_args, callback_kwargs):
         """Skip the usual CSRF referer check if this is an allowed cross-domain request. """
         if not is_cross_domain_request_allowed(request):
-            log.debug("Could not disable CSRF middleware referer check for cross-domain request.")
+            log.info("Could not disable CSRF middleware referer check for cross-domain request.")
             return
 
         is_secure_default = request.is_secure
@@ -153,7 +155,7 @@ class CsrfCrossDomainCookieMiddleware(object):
     def __init__(self):
         """Disable the middleware if the feature is not enabled. """
         if not settings.FEATURES.get('ENABLE_CROSS_DOMAIN_CSRF_COOKIE'):
-            log.debug("CsrfCrossDomainCookieMiddleware has been disabled.")
+            log.info("CsrfCrossDomainCookieMiddleware has been disabled.")
             raise MiddlewareNotUsed()
 
         if not getattr(settings, 'CROSS_DOMAIN_CSRF_COOKIE_NAME', ''):
@@ -173,7 +175,7 @@ class CsrfCrossDomainCookieMiddleware(object):
 
         # Check whether this is a secure request from a domain on our whitelist.
         if not is_cross_domain_request_allowed(request):
-            log.debug("Could not set cross-domain CSRF cookie.")
+            log.info("Could not set cross-domain CSRF cookie.")
             return response
 
         # Check whether (a) the CSRF middleware has already set a cookie, and
@@ -199,7 +201,7 @@ class CsrfCrossDomainCookieMiddleware(object):
                 path=settings.CSRF_COOKIE_PATH,
                 secure=True
             )
-            log.debug(
+            log.info(
                 "Set cross-domain CSRF cookie '%s' for domain '%s'",
                 settings.CROSS_DOMAIN_CSRF_COOKIE_NAME,
                 settings.CROSS_DOMAIN_CSRF_COOKIE_DOMAIN
